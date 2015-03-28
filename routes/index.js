@@ -154,11 +154,24 @@ router.get('/login/:userId/:domain', function(req, res, next) {
         data.attemptsLeft = Math.max(0, MAX_ATTEMPTS - info.attemptNum);
 
         if (data.attemptsLeft <= 0) {
-            data.nextDomain = nextDomain(data.domain);
-            data.title = 'Login to ' + data.domain + ' unsuccessful';
-        }
 
-        res.render('login-' + info.scheme, data);
+            userDB.resetAttempts(data, function(error) {
+
+                if (error) throw error;
+
+                var nextUrl = '/login/' + data.userId;
+
+                var nextDom = nextDomain(data.domain);
+                if (nextDom) {
+                    nextUrl += '/' + nextDom;
+                }
+
+                res.redirect(nextUrl);
+            });
+        }
+        else {
+            res.render('login-' + info.scheme, data);
+        }
     });
 });
 

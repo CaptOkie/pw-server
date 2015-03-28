@@ -154,6 +154,21 @@ module.exports = function(schemes) {
         db.run(stmt, data, callback);
     };
 
+    // RESETS THE ATTEMPTS MADE
+    //
+    //  data = {
+    //      userId: <int>,
+    //      domain: <string>
+    //  }
+    //  callback(error)
+    userDB.resetAttempts = function(data, callback) {
+
+        const stmt = 'UPDATE ' + PASSWORDS_TABLE + ' SET ' + PASSWORD_NUM_ATTEMPTS_COL + ' = 0 WHERE ' +
+            PASSWORD_USER_ID_COL + ' = $uid AND ' + PASSWORD_DOMAIN_COL + ' = $dom;';
+
+        db.run(stmt, { $uid: data.userId, $dom: data.domain }, callback);
+    };
+
     // REGISTERS AN ATTEMPT AND GETS THE PASSWORD INFO
     //
     //  data = {
