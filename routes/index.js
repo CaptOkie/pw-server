@@ -76,6 +76,24 @@ router.get('/new-user/:userId', function(req, res, next) {
     res.render('new-user', { title: 'Successfully created user!', userId: req.params.userId });
 });
 
+// POSTS TO CHECK WHETHER THE PASSWORD IS CORRECT
+router.post('/check/:userId/:domain', function(req, res, next) {
+
+    data = {
+        userId: req.params.userId,
+        domain: req.params.domain
+    }
+
+    userDB.getPwInfo(data, function(error, info) {
+
+        if (error) throw error;
+        if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
+
+        const result = schemes[info.scheme].check(req.body.password, info.password);
+        res.send(result ? undefined : 'Incorrect Password');
+    });
+});
+
 // POSTS THE USER ID TO START PRACTICING WITH
 router.post('/practice', function(req, res, next) {
     res.redirect('/practice/' + req.body.userId + '/' + domains[0]);
@@ -113,6 +131,7 @@ router.post('/practice/:userId/:domain', function(req, res, next) {
     userDB.getPwInfo(data, function(error, info) {
 
         if (error) throw error;
+        if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
 
         if (schemes[info.scheme].check(req.body.password, info.password)) {
             const nextDom = nextDomain(data.domain);
@@ -148,6 +167,9 @@ router.get('/login/:userId/:domain', function(req, res, next) {
     };
 
     userDB.getPwInfo(data, function(error, info) {
+
+        if (error) throw error;
+        if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
 
         data.title = 'Enter your ' + data.domain + ' password';
         data.pwError = req.query.pwError
@@ -186,6 +208,7 @@ router.post('/login/:userId/:domain', function(req, res, next) {
     userDB.attemptPassword(data, function(error, info) {
 
         if (error) throw error;
+        if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
 
         if (schemes[info.scheme].check(req.body.password, info.password)) {
             const nextDom = nextDomain(data.domain);

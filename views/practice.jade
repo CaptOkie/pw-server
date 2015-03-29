@@ -1,5 +1,8 @@
 extends layout
 
+block header
+    script(type='application/javascript', src='/cust/js/practice.js')
+
 block content
     div.jumbotron
         div.container
@@ -17,17 +20,16 @@ block content
                         div.panel-body
                             block password
             div.row
-                div.panel(class=pwError ? 'panel-danger' : 'panel-primary')
+                div#confirm-panel.panel(class=pwError ? 'panel-danger' : 'panel-primary')
                     div.panel-heading
                         h2.panel-title Confirm #{domain} Password
                     div.panel-body
-                        form(action='/practice/#{userId}/#{domain}', method='post')
+                        form#confirm-form(action='/practice/#{userId}/#{domain}', method='post')
                             block confirm
                             div.row
                                 div.col-xs-8
-                                    if pwError
-                                        p.form-control-static: strong.text-danger= pwError
+                                    p#confirm-msg-p.form-control-static(class=pwError ? '' : 'hidden'): strong.text-danger= pwError
                                 div.col-xs-4
                                     div.pull-right.btn-toolbar
-                                        button.btn.btn-default(type='button') Check
+                                        button#check-btn.btn.btn-default(type='button') Check
                                         button.btn.btn-primary(type='submit') Confirm
