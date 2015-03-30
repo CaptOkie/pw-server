@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const expLogger = require('../logging/exp-logger');
 const syllableParts = require('syllables.json');
 
 const schemes = {
@@ -31,7 +32,7 @@ const schemes = {
             return arr.join('*');
         },
         check: function(raw, stored) {
-            return raw === stored.replace('*', '');
+            return raw === stored.replace(/\*/g, '');
         }
     }
 };
@@ -193,6 +194,16 @@ router.get('/login/:userId/:domain', function(req, res, next) {
         }
         else {
             res.render('login-' + info.scheme, data);
+
+            var logData = {
+                domain: data.domain,
+                user: data.userId,
+                scheme: info.scheme,
+                mode: 'login',
+                event: 'start',
+                attempt: info.attemptNum
+            };
+            expLogger(logData);
         }
     });
 });
@@ -210,7 +221,9 @@ router.post('/login/:userId/:domain', function(req, res, next) {
         if (error) throw error;
         if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
 
-        if (schemes[info.scheme].check(req.body.password, info.password)) {
+        const correct = schemes[info.scheme].check(req.body.password, info.password);
+
+        if (correct) {
             const nextDom = nextDomain(data.domain);
             if (nextDom) {
                 res.redirect('/login/' + data.userId + '/' + nextDom);
@@ -222,6 +235,16 @@ router.post('/login/:userId/:domain', function(req, res, next) {
         else {
             res.redirect('/login/' + data.userId + '/' + data.domain + '?pwError=Incorrect Password');
         }
+
+        var logData = {
+            domain: data.domain,
+            user: data.userId,
+            scheme: info.scheme,
+            mode: 'login',
+            event: (correct ? 'success' : 'failure'),
+            attempt: info.attemptNum
+        };
+        expLogger(logData);
     });
 });
 
