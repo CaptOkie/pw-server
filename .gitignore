@@ -3,3 +3,6 @@ node_modules/
 
 # Ignore actual log files (want to keep that off github)
 logging/*-log.csv
+
+# Ignore the database file
+dbs/pw_db
