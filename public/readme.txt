@@ -1,0 +1,1 @@
+All the files in here are client side files for manipulating the UI via Javascript or styling the page via CSS.

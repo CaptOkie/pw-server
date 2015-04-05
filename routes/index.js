@@ -1,10 +1,16 @@
+/*
+ * Defines all the different URL routes used to interact with the server.
+ */
+
 const express = require('express');
 const router = express.Router();
 const expLogger = require('../logging/exp-logger');
 const syllableParts = require('syllables.json');
 
+// All the different schemes being used in the system.
+// Each scheme requires a gen() and a check(raw, stored) function.
 const schemes = {
-    'text6': {
+    'text6': { // The control scheme
         gen: function() {
 
             const max = 36;
@@ -19,7 +25,7 @@ const schemes = {
             return raw === stored;
         }
     },
-    'syllable2': {
+    'syllable2': { // Our scheme
         gen: function() {
 
             var arr = [];
@@ -51,10 +57,12 @@ router.get('/', function(req, res, next) {
 // CREATES A NEW USER AND GENERATES PASSWORDS FOR THE USER
 router.post('/new-user', function(req, res, next) {
 
+    // Adds a new user to the database.
     userDB.newUser(function(error, user) {
 
         if (error) throw error;
 
+        // Generates all the password info for each domain.
         const pws = domains.map(function(domain) {
             return {
                 userId: user.uid,
@@ -63,6 +71,7 @@ router.post('/new-user', function(req, res, next) {
             };
         });
         
+        // Adds the passwords to the database.
         userDB.addPasswords(pws, function(error) {
 
             if (error) throw error;
@@ -85,11 +94,13 @@ router.post('/check/:userId/:domain', function(req, res, next) {
         domain: req.params.domain
     }
 
+    // Gets the specified user's password information
     userDB.getPwInfo(data, function(error, info) {
 
         if (error) throw error;
         if (!info) throw 'No record found for UserID=' + req.params.userId + ', Domain=' + req.params.domain;
 
+        // Returns the result to the client
         const result = schemes[info.scheme].check(req.body.password, info.password);
         res.send(result ? undefined : 'Incorrect Password');
     });
@@ -108,6 +119,7 @@ router.get('/practice/:userId/:domain', function(req, res, next) {
         domain: req.params.domain
     };
 
+    // Gets the password information
     userDB.getPwInfo(data, function(error, info) {
 
         if (error) throw error;
@@ -117,6 +129,7 @@ router.get('/practice/:userId/:domain', function(req, res, next) {
         data.password = info.password,
         data.pwError = req.query.pwError
 
+        // Renders the practice page for the specific scheme and domain.
         res.render('practice-' + info.scheme, data);
     });
 });
@@ -129,6 +142,7 @@ router.post('/practice/:userId/:domain', function(req, res, next) {
         domain: req.params.domain
     };
 
+    // Gets the password information
     userDB.getPwInfo(data, function(error, info) {
 
         if (error) throw error;
@@ -137,13 +151,16 @@ router.post('/practice/:userId/:domain', function(req, res, next) {
         if (schemes[info.scheme].check(req.body.password, info.password)) {
             const nextDom = nextDomain(data.domain);
             if (nextDom) {
+                // Proceeds to the next domain practice.
                 res.redirect('/practice/' + data.userId + '/' + nextDom);
             }
             else {
+                // Proceeds to the practice complete page.
                 res.redirect('/practice/' + data.userId);
             }
         }
         else {
+            // Returns to the current domain with an error.
             res.redirect('/practice/' + data.userId + '/' + data.domain + '?pwError=Incorrect Password');
         }
     });
@@ -167,6 +184,7 @@ router.get('/login/:userId/:domain', function(req, res, next) {
         domain: req.params.domain
     };
 
+    // Gets the password info
     userDB.getPwInfo(data, function(error, info) {
 
         if (error) throw error;
@@ -178,6 +196,7 @@ router.get('/login/:userId/:domain', function(req, res, next) {
 
         if (data.attemptsLeft <= 0) {
 
+            // Resets the user's attempt count so they aren't locked out
             userDB.resetAttempts(data, function(error) {
 
                 if (error) throw error;
@@ -189,10 +208,12 @@ router.get('/login/:userId/:domain', function(req, res, next) {
                     nextUrl += '/' + nextDom;
                 }
 
+                // Proceeds to the next domain or the login complete page.
                 res.redirect(nextUrl);
             });
         }
         else {
+            // Renders the login page for the specific scheme and domain.
             res.render('login-' + info.scheme, data);
 
             var logData = {
@@ -203,6 +224,8 @@ router.get('/login/:userId/:domain', function(req, res, next) {
                 event: 'start',
                 attempt: info.attemptNum
             };
+
+            // Logs a starting login attempt.
             expLogger(logData);
         }
     });
@@ -216,6 +239,7 @@ router.post('/login/:userId/:domain', function(req, res, next) {
         domain: req.params.domain
     };
 
+    // Gets the password information
     userDB.attemptPassword(data, function(error, info) {
 
         if (error) throw error;
@@ -226,13 +250,16 @@ router.post('/login/:userId/:domain', function(req, res, next) {
         if (correct) {
             const nextDom = nextDomain(data.domain);
             if (nextDom) {
+                // Proceeds to the next login page
                 res.redirect('/login/' + data.userId + '/' + nextDom);
             }
             else {
+                // Proceeds to the login complete page.
                 res.redirect('/login/' + data.userId);
             }
         }
         else {
+            // Returns the user to the current login page with an error.
             res.redirect('/login/' + data.userId + '/' + data.domain + '?pwError=Incorrect Password');
         }
 
@@ -244,6 +271,7 @@ router.post('/login/:userId/:domain', function(req, res, next) {
             event: (correct ? 'success' : 'failure'),
             attempt: info.attemptNum
         };
+        // Logs the result of the login attempt
         expLogger(logData);
     });
 });

@@ -1,3 +1,7 @@
+/**
+ * Creates the API for interacting with the database used to store user information.
+ */
+
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database('./dbs/pw_db');
 

@@ -1,3 +1,7 @@
+/*
+ * Creates the API for logging data to the log files.
+ */
+
 const fs = require('fs');
 
 // LOGS EXPERIMENT INFORMATION
