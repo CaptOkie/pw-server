@@ -1,9 +1,19 @@
+/ ======================= \
+| NOTES                   |
+\ ======================= /
+
+All the pieces to used in the syllables for the passwords are in node_modules/syllables.json
+
+/ ======================= \
+| SETUP                   |
+\ ======================= /
+
 The system should work on any linux based system, so long as it has the necessary
 packages (don't know how to set it up on a Windows based system).
 
-/ ----------------- \
-| TERMINAL COMMANDS |
-\ ----------------- /
+/ ----------------------- \
+| TERMINAL COMMANDS       |
+\ ----------------------- /
 
 Required terminal commands: npm, node
 
