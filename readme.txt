@@ -2,7 +2,7 @@
 | NOTES                   |
 \ ======================= /
 
-All the pieces to used in the syllables for the passwords are in node_modules/syllables.json
+All the pieces used in the syllables for the passwords are in node_modules/syllables.json
 
 / ======================= \
 | SETUP                   |
